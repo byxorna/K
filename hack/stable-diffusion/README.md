@@ -1,9 +1,14 @@
-- clone stable-diffusion
-- sign up to get 1.4 weights
-- prune weights to fit into 2060 6GB memory
+# TODO
+
+- prune weights to more gracefully fit into <10GB memory
 
 # Setup
 
 ```
 $ make build
 ```
+
+# Run
+
+./test.py
+

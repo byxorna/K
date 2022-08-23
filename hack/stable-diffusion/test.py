@@ -7,19 +7,24 @@ import secrets
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 
-prompt = "a rain drenched Zaibatsu executive transport spaceship"
+prompt = "a pikachu fine dining with a view of the eiffel tower"
+#prompt = "an executive helicopter departing from the corporate headquarters at night"
 #prompt = "a cheerful cartoon bear greeting a family at the trail in a national forest"
-count=3 # how many images to generate
+count=1 # how many images to generate
 
+output_dir = "output"
 model_id = "CompVis/stable-diffusion-v1-4"
+cuda_conf_env_var = "PYTORCH_CUDA_ALLOC_CONF"
 device = "cuda"
 height=384
 width=384
 num_inference_steps=50 # 50 default
 guidance_scale=7 # 7 or 8.5
 cuda_max_split_size_mb = 64
-initial_seed = secrets.randbits(32) # None
+initial_seed = secrets.randbits(64) # None
 output_id = secrets.token_hex(16)
+torch_pipeline_precision = torch.float32
+cuda_conf = ""
 
 ## Setup and Configuration
 print("initializing {}...".format(output_id))
@@ -27,17 +32,13 @@ gpu_mem = torch.cuda.mem_get_info()[0] # bytes
 if height%8!=0 or width%8!=0:
     raise "height and width need to be divisible by 8"
 
-pipeline_precision = torch.float32
-if gpu_mem < 10*(1024**3): # check gpu vmem < 10GB, use float16
-    pipeline_precision = torch.float16
-
-cuda_conf_env_var = "PYTORCH_CUDA_ALLOC_CONF"
-cuda_conf = ""
 if cuda_conf_env_var in os.environ:
     cuda_conf = os.environ[cuda_conf_env_var]
 
-if cuda_conf == "" and gpu_mem < 10*(1024**3): # use a smaller split size on smaller cards for better efficiency
-    cuda_conf = "max_split_size_mb:{max_split_size_mb}".format(max_split_size_mb=cuda_max_split_size_mb)
+if gpu_mem < 10*(1024**3): # check gpu vmem < 10GB, use float16
+    torch_pipeline_precision = torch.float16
+    if cuda_conf == "":
+        cuda_conf = "max_split_size_mb:{max_split_size_mb}".format(max_split_size_mb=cuda_max_split_size_mb)
 
 os.environ[cuda_conf_env_var] = cuda_conf
 
@@ -59,7 +60,7 @@ md = {
             'width': width,
             'count': count,
             #'torch': {
-            #    'precision': pipeline_precision,
+            #    'precision': torch_pipeline_precision,
             #    'foo': 'bar',
             #},
         },
@@ -79,17 +80,17 @@ with autocast(device):
     pipe = StableDiffusionPipeline.from_pretrained(
             model_id,
             use_auth_token=True,
-            torch_dtype=pipeline_precision).to(device)
+            torch_dtype=torch_pipeline_precision).to(device)
 
     try:
         images = pipe([prompt]*count, generator=generator, num_inference_steps=num_inference_steps, guidance_scale=guidance_scale, height=height, width=width)["sample"]
         for i in list(range(len(images))):
             image = images[i]
             fname = "output-{ts}-{id}-{idx}.png".format(id=md['id'], ts=int(md['timestamp']), idx=i)
-            image.save(fname)
+            image.save(os.path.join(output_dir, fname))
             print("view with `xdg-open {}` (metadata: {})".format(fname, md['self']))
     except RuntimeError as e:
         md['error'] = e
         print("caught error: {}", e)
 
-write_metadata("./{}.yaml".format(md['id']), md)
+write_metadata(os.path.join(output_dir, md['self']), md)
