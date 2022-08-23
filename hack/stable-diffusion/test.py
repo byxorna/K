@@ -7,8 +7,8 @@ import secrets
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 
-#prompt = "a rain drenched night market through the receding rearview mirror of the Syndicate's executive transport ship"
-prompt = "a cheerful cartoon bear greeting a family at the trail in a national forest"
+prompt = "a rain drenched Zaibatsu executive transport spaceship"
+#prompt = "a cheerful cartoon bear greeting a family at the trail in a national forest"
 count=3 # how many images to generate
 
 model_id = "CompVis/stable-diffusion-v1-4"
@@ -22,7 +22,7 @@ initial_seed = secrets.randbits(32) # None
 output_id = secrets.token_hex(16)
 
 ## Setup and Configuration
-print("initializing...")
+print("initializing {}...".format(output_id))
 gpu_mem = torch.cuda.mem_get_info()[0] # bytes
 if height%8!=0 or width%8!=0:
     raise "height and width need to be divisible by 8"
