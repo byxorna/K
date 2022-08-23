@@ -7,7 +7,7 @@ import secrets
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 
-prompt = "a pikachu fine dining with a view of the eiffel tower"
+prompt = "late night ramen night market in the style of blade runner 2049"
 #prompt = "an executive helicopter departing from the corporate headquarters at night"
 #prompt = "a cheerful cartoon bear greeting a family at the trail in a national forest"
 count=1 # how many images to generate
@@ -18,8 +18,8 @@ cuda_conf_env_var = "PYTORCH_CUDA_ALLOC_CONF"
 device = "cuda"
 height=384
 width=384
-num_inference_steps=50 # 50 default
-guidance_scale=7 # 7 or 8.5
+num_inference_steps=50 # 50 default, number of denoising steps
+guidance_scale=7 # 7 or 8.5, scale for classifier-free guidance
 cuda_max_split_size_mb = 64
 initial_seed = secrets.randbits(64) # None
 output_id = secrets.token_hex(16)
@@ -27,7 +27,12 @@ torch_pipeline_precision = torch.float32
 cuda_conf = ""
 
 ## Setup and Configuration
-print("initializing {}...".format(output_id))
+if torch.cuda.is_available():
+    device = "cuda"
+else:
+    device = "cpu"
+
+print("initializing {} ({})...".format(output_id, device))
 gpu_mem = torch.cuda.mem_get_info()[0] # bytes
 if height%8!=0 or width%8!=0:
     raise "height and width need to be divisible by 8"
@@ -48,7 +53,7 @@ if initial_seed is not None:
 
 #print("memory_stats(): {stats}\nmemory_summary(): {summary}".format(stats=torch.cuda.memory_stats(), summary=torch.cuda.memory_summary()))
 
-print("prompt: {} (count: {})".format(prompt, count))
+print("prompt: {} ({}x{}, count: {})".format(prompt, width, height, count))
 
 md = {
         'id': output_id,
