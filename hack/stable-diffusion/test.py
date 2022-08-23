@@ -7,7 +7,7 @@ import secrets
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 
-prompt = "late night ramen night market in the style of blade runner 2049"
+prompt = "a butterfly's markings swirling into the chaotic void of the horsehead nebulae"
 #prompt = "an executive helicopter departing from the corporate headquarters at night"
 #prompt = "a cheerful cartoon bear greeting a family at the trail in a national forest"
 count=1 # how many images to generate
@@ -17,7 +17,7 @@ model_id = "CompVis/stable-diffusion-v1-4"
 cuda_conf_env_var = "PYTORCH_CUDA_ALLOC_CONF"
 device = "cuda"
 height=384
-width=384
+width=512
 num_inference_steps=50 # 50 default, number of denoising steps
 guidance_scale=7 # 7 or 8.5, scale for classifier-free guidance
 cuda_max_split_size_mb = 64
