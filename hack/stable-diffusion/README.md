@@ -10,5 +10,7 @@ $ make build
 
 # Run
 
-./test.py
+```
+./test.py --prompt "art nouveau style portrait of two cats sharing a latte" --iterations 4
+```
 
